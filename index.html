@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+  <head lang="fi">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.37/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-i18n@9.2.2/dist/vue-i18n.global.js"></script>
+    <link href="https://fonts.cdnfonts.com/css/futura-md-bt" rel="stylesheet">
+    <title>Cargobikes</title>
+
+    <style>
+      html, body {
+        padding: 0;
+        margin: 0;
+      }
+
+      body {
+        font-size: 23px;
+        font-family: 'Futura Md BT', sans-serif;
+        background: #ECA17F;
+        padding-left: 30px;
+        padding-right: 30px;
+      }
+
+      h1 { font-size: 1.7em; }
+      h2 { font-size: 1.35em; }
+      h3 { font-size: 1.1em; }
+      h4 { font-size: 1em; }
+
+      a {
+        color: black;
+      }
+
+      #app {
+        margin-left: auto;
+        margin-right:auto;
+        max-width: 500px;
+        font-size: 1em;
+        padding: 15px;
+        background: #FDF5F2;
+      }
+
+      form input[type="radio"] {
+        margin-right: 20px;
+      }
+      form > div {
+        margin-bottom: 10px;
+      }
+
+      input[type="radio"] {
+        -ms-transform: scale(1.5); /* IE 9 */
+        -webkit-transform: scale(1.5); /* Chrome, Safari, Opera */
+        transform: scale(1.5);
+        vertical-align: middle;
+        margin-top: -2px;
+      }
+      label.option-label {
+        margin-left: -20px;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .important-option {
+        display: inline-block;
+        color: rgba(0,0,0,0.6);
+        font-size: 0.8em;
+        font-family: sans-serif;
+        float: right;
+        margin-top: 5px;
+      }
+
+      .choose-language {
+        font-size: 0.6em;
+      }
+      .choose-language a {
+        margin-left: 20px;
+        text-decoration: underline;
+      }
+
+      .results > div {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+      }
+      .results li {
+        margin-bottom: 10px;
+      }
+      .results > div:nth-of-type(1) {
+        font-size: 1.3em;
+      }
+      .results > div:nth-of-type(2) {
+        font-size: 1.2em;
+      }
+      .results > div:nth-of-type(3) {
+        font-size: 1.1em;
+      }
+      .results > div:nth-of-type(1) .result-position {
+        width: 1.3em;
+        height: 1.3em;
+        line-height: 1.3em;
+      }
+      .results > div:nth-of-type(2) .result-position {
+        width: 1.2em;
+        height: 1.2em;
+        line-height: 1.2em;
+      }
+      .results > div:nth-of-type(3) .result-position {
+        width: 1.1em;
+        height: 1.1em;
+        line-height: 1.1em;
+      }
+      .results > div .result-position {
+        width: 1em;
+        height: 1em;
+        line-height: 1em;
+      }
+
+      .result-position {
+        display: inline-block;
+        border-radius: 50%;
+        border: 1px solid green;
+        text-align: center;
+      }
+
+      .result-category {
+        padding-left: 20px;
+      }
+
+      .test-content, .results {
+        margin-bottom: 150px;
+      }
+
+      ul {
+        margin: 0;
+      }
+
+      li .remark-question {
+        color: #777;
+        font-style: italic;
+        margin-right: 8px;
+      }
+
+      li .remark-text:after {
+        content:"\000A";
+        white-space: pre;
+      }
+
+      li.remark {
+        margin-bottom: 20px;
+      }
+      .good.remark {
+        color: #1fcd55;
+      }
+      .bad.remark {
+        color: #C26161;
+      }
+      .verybad.remark {
+        color: #BA4D4D;
+      }
+
+      .redo {
+        display: block;
+        text-align: center;
+        margin-top: 40px;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div class="choose-language">
+        <span>{{ $t("Choose language") }}:</span>
+        <a v-on:click="$i18n.locale = 'fi'">suomi</a>
+        <a v-on:click="$i18n.locale = 'en'">english</a>
+      </div>
+      <div class="test-content">
+        <h1>{{ $t("Cargo bike test") }}</h1>
+
+        <div>
+          {{ $t("Welcome") }}
+        </div>
+
+        <div v-for="(question, index) in questions">
+          <h3>{{ index + 1 }}. {{ $t(question.text) }}</h3>
+          <form>
+            <template v-for="option in question.options">
+              <div>
+                <label :for="option.id" class="option-label">
+                <input :name="question.id" type="radio" :id="option.id" v-model="question.selectedOption" :value="option" v-on:change="checkResults" />
+                {{ $t(option.text) }}
+                </label>
+                <span v-if="question.selectedOption == option" class="important-option">
+                  <label :title="$t('add more weight')">
+                    <input type="checkbox" v-model="option.important" :value="true" v-on:change="checkResults" /> {{ $t("important") }}
+                  </label>
+                </span>
+              </div>
+            </template>
+          </form>
+        </div>
+      </div>
+
+      <div class="results" v-if="results.categories.length">
+        <h2>{{ $t("Results") }}:</h2>
+        <span>{{ $t("Best suited for you...") }}</span>
+        <template v-for="(result, index) in results.categories">
+          <div class="result-category" :style="{background: 'linear-gradient(to right, #95efb1 ' + (result[1] / results.categories[0][1] * 100) + '%, rgba(0,0,0,0) ' + (result[1] / results.categories[0][1] * 100) + '%'}">
+            <span class="result-position">{{ index + 1 }}</span> {{ $t(result[0]) }}
+          </div>
+          <ul>
+            <li v-for="remark in remarks(result[0])" :class="remark.cssClass + ' remark'">
+              <span class="remark-question">"{{ $t(remark.question) }}"</span> <span v-for="remark in remark.remarks" class="remark-text">{{ $t(remark) }}</span>
+            </li>
+          </ul>
+        </template>
+        <div class="result-category" :style="{background: 'linear-gradient(to right, #BBE4E5 ' + (results.ebike / results.categories[0][1] * 100) + '%, rgba(0,0,0,0) ' + (results.ebike / results.categories[0][1] * 100) + '%'}">
+          {{ $t("e-assist") }}?
+        </div>
+
+        <a class="redo" href=".">{{ $t("Redo test!") }}</a>
+      </div>
+
+      <div class="bottom-about">
+        Rahtipyörätesti 2022
+      </div>
+
+    </div>
+
+    <script>
+
+      const messages = {
+        "fi": {
+          "Welcome": "Tervetuloa Rahtipyörätestiin! Testin avulla voit kartoittaa, minkä tyyppinen rahti- tai perhepyörä sinulle sopisi parhaiten. Valitse kysymyksiin omiin tarpeisiisi osuvin vastaus. Tulokset löydät sivun lopusta.",
+          "Cargo bike test": "Rahtipyörätesti",
+          "Daily": "Päivittäin",
+          "Choose language": "Valitse kieli",
+          "Need for transport?": "Mitä kuljetat?",
+          "Daily groceries": "Päivittäisiä ostoksia",
+          "Heavy duty cargo": "Raskasta tavaraa",
+          "1 - 2 children": "1 - 2 lasta",
+          "3 - 4 children": "3 - 4 lasta",
+          "Results": "Tulokset",
+          "long_tail": "Pitkäperäpyörä",
+          "two_wheel": "2-renkainen rahtipyörä",
+          "three_wheel": "3-renkainen rahtipyörä",
+          "trailer": "Pyöräperäkärry",
+          "Best suited for you...": "Sinulle sopisi parhaiten...",
+          "Make sure there is enough space for two children.": "Varmista, että pyörässä on tilaa kahdelle lapselle",
+          "e-assist": "Sähköavuste",
+          "Carrying more than 2 children is usually not possible": "Useamman kuin kahden lapsen kuljettaminen ei tyypillisesti ole mahdollista",
+          "Driveability?": "Ajettavuus?",
+          "Agility before all": "Ketteryys ennen kaikkea",
+          "Steadier the better": "Mitä vakaampi sen parempi",
+          "important": "Tärkeä",
+          "add more weight": "Painota tätä vastausta enemmän.",
+          "Redo test!": "Tee testi uudestaan!",
+        },
+        "en": {
+          "Welcome": "Welcome to Cargo bike test! This test helps you to figure out with kind of cargo or family bike would suit you best.",
+          "long_tail": "Long tail bike",
+          "two_wheel": "2 wheel cargo bike",
+          "three_wheel": "3 wheel cargo bike",
+          "trailer": "Bicycle trailer",
+          "important": "Important",
+          "add more weight": "Add more weight to this selection.",
+        }
+      }
+
+      const i18n = VueI18n.createI18n({
+        locale: "fi",
+        fallbackLocale: "en",
+        messages,
+        allowComposition: true,
+      })
+
+      const { t } = i18n.global
+
+      class Question {
+        constructor(text, options) {
+          this.text = text
+          this.id = text
+          this.selectedOption = null
+          this.options = options
+        }
+      }
+
+      class Option {
+        constructor(text, scores) {
+          this.text = text
+          this.id = text
+          this.important = false
+          this.scores = {}
+          Object.keys(scores).forEach(key => {
+            if (!(scores[key] instanceof Score)) {
+              this.scores[key] = new Score(scores[key])
+            } else {
+              this.scores[key] = scores[key]
+            }
+          })
+        }
+      }
+
+      class Score {
+        constructor(score, args) {
+          this.score = score
+          if (args !== undefined)
+            this.remarks = ("remarks" in args) ? args !== undefined && args.remarks : null
+          else this.remarks = []
+        }
+      }
+
+      var questions = [
+        new Question(
+          "Need for transport?", [
+            new Option("Daily groceries", {
+              long_tail: 0.8,
+              two_wheel: 1,
+              three_wheel: 1,
+              trailer: 0.8,
+              ebike: 0.8,
+            }),
+            new Option("Heavy duty cargo", {
+              long_tail: 0.6,
+              two_wheel: 0.8,
+              three_wheel: 1,
+              trailer: 0.5,
+              ebike: 1,
+            }),
+            new Option("1 - 2 children", {
+              long_tail: 0.8,
+              two_wheel: new Score(0.9, {remarks: ["Make sure there is enough space for two children."]}),
+              three_wheel: 1,
+              trailer: 1,
+              ebike: 1,
+            }),
+            new Option("3 - 4 children", {
+              long_tail: new Score(0, {remarks: ["Carrying more than 2 children is usually not possible"]}),
+              two_wheel: new Score(0, {remarks: ["Carrying more than 2 children is usually not possible"]}),
+              three_wheel: 0.75,
+              trailer: 0.25,
+              ebike: 1,
+            }),
+          ]),
+        new Question(
+          "Daily commute or occasionally?", [
+            new Option("Daily", {
+              long_tail: 0.75,
+              two_wheel: 0.75,
+              three_wheel: 1,
+              trailer: 0.5,
+              ebike: 1,
+            }),
+            new Option("No, just leisure", {
+              long_tail: 1,
+              two_wheel: 1,
+              three_wheel: 0.75,
+              trailer: 1,
+              ebike: 0.2,
+            }),
+          ]),
+        new Question("Bicycling throughout the year?", [
+            new Option("Yes (summer and winter)", {
+              long_tail: new Score(0.75, {remarks: ["Make sure accessories such as raincover are available for bicycle model of your choice.", "Consider using winter tyres in the winter."]}),
+              two_wheel: 0.9,
+              three_wheel: 1.2,
+              trailer: 0.5,
+              ebike: 2,
+            }),
+            new Option("No, summer only", {
+              long_tail: 1,
+              two_wheel: 1,
+              three_wheel: 0.75,
+              trailer: 1,
+              ebike: 0.8
+            }),
+          ]),
+        new Question("Driveability?", [
+            new Option("Agility before all", {
+              long_tail: new Score(1, {remarks: ["Long tail bicycle is closest to a normal bike"]}),
+              two_wheel: 0.7,
+              three_wheel: 0.3,
+              trailer: 0.7,
+              ebike: 1,
+            }),
+            new Option("Steadier the better", {
+              long_tail: 0.3,
+              two_wheel: 0.7,
+              three_wheel: new Score(1, {remarks: ["Three wheel is steady, but beware on inclined roads"]}),
+              trailer: 0.7,
+              ebike: 1,
+            }),
+          ]),
+        new Question("Price?", [
+            new Option("0-2000e", {
+              long_tail: 0.5,
+              two_wheel: 1,
+              three_wheel: new Score(-0.5, {remarks: ["Finding a three wheel cargo bike in this price range might prove difficult"]}),
+              trailer: 1,
+              ebike: -1,
+            }),
+            new Option("2000-5000e", {
+              long_tail: 0.75,
+              two_wheel: 1,
+              three_wheel: 0.5,
+              trailer: 1,
+              ebike: 0.5
+            }),
+            new Option("5000e-", {
+              long_tail: 1,
+              two_wheel: 1,
+              three_wheel: 1,
+              trailer: 1,
+              ebike: 1
+            }),
+          ]),
+        new Question("Usual travel distance?", [
+            new Option("Less than 3km", {
+              long_tail: 1,
+              two_wheel: 1,
+              three_wheel: 1,
+              trailer: 1,
+              ebike: 0,
+            }),
+            new Option("3-7km", {
+              long_tail: 1,
+              two_wheel: 0.9,
+              three_wheel: 0.5,
+              trailer: 0.5,
+              ebike: 0.9
+            }),
+            new Option("More than 7km", {
+              long_tail: 1.5,
+              two_wheel: 0.8,
+              three_wheel: new Score(0.3, {remarks: ["Driving long distances with a three wheel cargo bike tedious due to its lack of agility."]}),
+              trailer: 0.5,
+              ebike: 1.5
+            }),
+          ]),
+      ]
+
+      Vue.createApp({
+        data() {
+          return {
+            questions: questions,
+            results: {
+              categories: [],
+              ebike: null,
+            }
+          }
+        },
+        methods: {
+          checkResults() {
+            var total = {}
+            questions.forEach(q => {
+              if (!q.selectedOption) return
+              Object.keys(q.selectedOption.scores).forEach(k => {
+                var score = q.selectedOption.scores[k].score
+                score = q.selectedOption.important ? score * 2 : score;
+                (k in total) ? total[k] += score : total[k] = score
+              })
+            })
+
+            var ebike = total.ebike
+            delete total.ebike
+
+            total = Object.entries(total)
+            total.sort((a, b) => a[1] - b[1])
+            total.reverse()
+            this.results = {
+              categories: total,
+              ebike: ebike,
+            }
+          },
+          remarks(category) {
+            var ret = []
+            questions.forEach(question => {
+              if (question.selectedOption != null && question.selectedOption.scores[category].remarks.length) {
+                var score = question.selectedOption.scores[category].score
+                var cssClass = "";
+                if (score >= 0.5) {
+                  cssClass = "good"
+                } else if (score >= 0.0) {
+                  cssClass = "bad"
+                } else if (score < 0.0) {
+                  cssClass = "verybad"
+                }
+                ret.push({
+                  question: question.text,
+                  score: score,
+                  remarks: question.selectedOption.scores[category].remarks,
+                  cssClass: cssClass,
+                })
+              }
+            })
+            return ret
+          }
+        }
+      }).use(i18n).mount("#app")
+    </script>
+
+  </body>
+</html>
