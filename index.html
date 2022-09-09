@@ -183,16 +183,27 @@
           {{ $t("Welcome") }}
         </div>
 
-        <div v-for="(question, index) in questions">
-          <h3>{{ index + 1 }}. {{ $t(question.text) }}</h3>
+        <div v-for="(question, questionIndex) in questions">
+          <h3>{{ questionIndex + 1 }}. {{ $t(question.text) }}</h3>
           <form>
-            <template v-for="option in question.options">
-              <div>
+            <template v-for="(option, optionIndex) in question.options">
+              <div v-if="!question.multiselect">
                 <label :for="option.id" class="option-label">
-                <input :name="question.id" type="radio" :id="option.id" v-model="question.selectedOptions[index]" :value="option" v-on:change="checkResults" />
+                <input :name="question.id" type="radio" :id="option.id" v-model="question.selectedOptions" :value="option" v-on:change="checkResults" />
                 {{ $t(option.text) }}
                 </label>
-                <span v-if="option == question.selectedOptions[index]" class="important-option">
+                <span v-if="question.selectedOptions == option" class="important-option">
+                  <label :title="$t('add more weight')">
+                    <input type="checkbox" v-model="option.important" :value="true" v-on:change="checkResults" /> {{ $t("important") }}
+                  </label>
+                </span>
+              </div>
+              <div v-else>
+                <label :for="option.id" class="option-label">
+                <input :name="question.id" type="checkbox" :id="option.id" v-model="question.selectedOptions" :value="option" v-on:change="checkResults" />
+                {{ $t(option.text) }}
+                </label>
+                <span v-if="question.selectedOptions.includes(option)" class="important-option">
                   <label :title="$t('add more weight')">
                     <input type="checkbox" v-model="option.important" :value="true" v-on:change="checkResults" /> {{ $t("important") }}
                   </label>
@@ -281,15 +292,13 @@
       const { t } = i18n.global
 
       class Question {
-        constructor(text, options) {
+        constructor(text, multiselect, options) {
           this.text = text
+          this.multiselect = multiselect
           this.id = text
           this.selectedOption = null
           this.options = options
           this.selectedOptions = []
-          options.forEach(o => {
-            this.selectedOptions.push(null)
-          })
         }
       }
 
@@ -320,7 +329,7 @@
 
       var questions = [
         new Question(
-          "Need for transport?", [
+          "Need for transport?", true, [
             new Option("Daily groceries", {
               long_tail: 0.8,
               two_wheel: 1,
@@ -351,7 +360,7 @@
             }),
           ]),
         new Question(
-          "Daily commute or occasionally?", [
+          "Daily commute or occasionally?", false, [
             new Option("Daily", {
               long_tail: 0.75,
               two_wheel: 0.75,
@@ -367,7 +376,7 @@
               ebike: 0.2,
             }),
           ]),
-        new Question("Bicycling throughout the year?", [
+        new Question("Bicycling throughout the year?", false, [
             new Option("Yes (summer and winter)", {
               long_tail: new Score(0.75, {remarks: ["Make sure accessories such as raincover are available for bicycle model of your choice.", "Consider using winter tyres in the winter."]}),
               two_wheel: 0.9,
@@ -383,7 +392,7 @@
               ebike: 0.8
             }),
           ]),
-        new Question("Driveability?", [
+        new Question("Driveability?", false, [
             new Option("Agility before all", {
               long_tail: new Score(1, {remarks: ["Long tail bicycle is closest to a normal bike"]}),
               two_wheel: 0.7,
@@ -399,7 +408,7 @@
               ebike: 1,
             }),
           ]),
-        new Question("Price?", [
+        new Question("Price?", false, [
             new Option("0-2000e", {
               long_tail: 0.5,
               two_wheel: 1,
@@ -422,7 +431,7 @@
               ebike: 1
             }),
           ]),
-        new Question("Usual travel distance?", [
+        new Question("Usual travel distance?", false, [
             new Option("Less than 3km", {
               long_tail: 1,
               two_wheel: 1,
@@ -461,13 +470,15 @@
           checkResults() {
             var total = {}
             questions.forEach(q => {
-              if (!q.selectedOptions.length) return
-              q.selectedOptions.forEach(selectedOption => {
+              var selectedOptions = q.selectedOptions
+              if (!Array.isArray(selectedOptions)) selectedOptions = [selectedOptions]
+              if (!selectedOptions.length) return
+              selectedOptions.forEach(selectedOption => {
                 if (!selectedOption) return
                 Object.keys(selectedOption.scores).forEach(k => {
                   var score = selectedOption.scores[k].score
                   score = selectedOption.important ? score * 2 : score
-                  score = score / q.selectedOptions.length;
+                  score = score / selectedOptions.length;
                   (k in total) ? total[k] += score : total[k] = score
                 })
               })
