@@ -189,10 +189,10 @@
             <template v-for="option in question.options">
               <div>
                 <label :for="option.id" class="option-label">
-                <input :name="question.id" type="radio" :id="option.id" v-model="question.selectedOption" :value="option" v-on:change="checkResults" />
+                <input :name="question.id" type="radio" :id="option.id" v-model="question.selectedOptions[index]" :value="option" v-on:change="checkResults" />
                 {{ $t(option.text) }}
                 </label>
-                <span v-if="question.selectedOption == option" class="important-option">
+                <span v-if="option == question.selectedOptions[index]" class="important-option">
                   <label :title="$t('add more weight')">
                     <input type="checkbox" v-model="option.important" :value="true" v-on:change="checkResults" /> {{ $t("important") }}
                   </label>
@@ -274,6 +274,8 @@
         fallbackLocale: "en",
         messages,
         allowComposition: true,
+        silentTranslationWarn: true,
+        silentFallbackWarn: true,
       })
 
       const { t } = i18n.global
@@ -284,6 +286,10 @@
           this.id = text
           this.selectedOption = null
           this.options = options
+          this.selectedOptions = []
+          options.forEach(o => {
+            this.selectedOptions.push(null)
+          })
         }
       }
 
@@ -455,11 +461,15 @@
           checkResults() {
             var total = {}
             questions.forEach(q => {
-              if (!q.selectedOption) return
-              Object.keys(q.selectedOption.scores).forEach(k => {
-                var score = q.selectedOption.scores[k].score
-                score = q.selectedOption.important ? score * 2 : score;
-                (k in total) ? total[k] += score : total[k] = score
+              if (!q.selectedOptions.length) return
+              q.selectedOptions.forEach(selectedOption => {
+                if (!selectedOption) return
+                Object.keys(selectedOption.scores).forEach(k => {
+                  var score = selectedOption.scores[k].score
+                  score = selectedOption.important ? score * 2 : score
+                  score = score / q.selectedOptions.length;
+                  (k in total) ? total[k] += score : total[k] = score
+                })
               })
             })
 
@@ -476,9 +486,14 @@
           },
           remarks(category) {
             var ret = []
+
             questions.forEach(question => {
-              if (question.selectedOption != null && question.selectedOption.scores[category].remarks.length) {
-                var score = question.selectedOption.scores[category].score
+              if (!question.selectedOptions.length) return
+
+              question.selectedOptions.forEach(selectedOption => {
+                if (!selectedOption || !selectedOption.scores[category].remarks.length) return
+
+                var score = selectedOption.scores[category].score
                 var cssClass = "";
                 if (score >= 0.5) {
                   cssClass = "good"
@@ -490,11 +505,13 @@
                 ret.push({
                   question: question.text,
                   score: score,
-                  remarks: question.selectedOption.scores[category].remarks,
+                  remarks: selectedOption.scores[category].remarks,
                   cssClass: cssClass,
                 })
-              }
+
+              })
             })
+
             return ret
           }
         }
