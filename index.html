@@ -159,6 +159,9 @@
       .verybad.remark {
         color: #BA4D4D;
       }
+      .common-remarks-list .remark {
+        color: #1fcd55;
+      }
 
       .redo {
         display: block;
@@ -222,10 +225,17 @@
             <span class="result-position">{{ index + 1 }}</span> {{ $t(result[0]) }}
           </div>
           <ul>
-            <li v-for="remark in remarks(result[0])" :class="remark.cssClass + ' remark'">
+            <li v-for="remark in remarksForCategory(result[0])" :class="remark.cssClass + ' remark'">
               <span class="remark-question">"{{ $t(remark.question) }}"</span> <span v-for="remark in remark.remarks" class="remark-text">{{ $t(remark) }}</span>
             </li>
           </ul>
+          <template v-if="index == 0 && remarksForSelectedOptions().length">
+          <ul class="common-remarks-list">
+            <li v-for="remark in remarksForSelectedOptions()" class="remark">
+              <span class="remark-question">"{{ $t(remark.question) }}"</span> <span v-for="remark in remark.remarks" class="remark-text">{{ $t(remark) }}</span>
+            </li>
+          </ul>
+          </template>
         </template>
         <div class="result-category" :style="{background: 'linear-gradient(to right, #BBE4E5 ' + (results.ebike / results.categories[0][1] * 100) + '%, rgba(0,0,0,0) ' + (results.ebike / results.categories[0][1] * 100) + '%'}">
           {{ $t("e-assist") }}?
@@ -308,7 +318,7 @@
       }
 
       class Option {
-        constructor(text, scores) {
+        constructor(text, scores, args) {
           this.text = text
           this.id = text
           this.important = false
@@ -320,6 +330,10 @@
               this.scores[key] = scores[key]
             }
           })
+
+          if (args !== undefined)
+            this.remarks = ("remarks" in args) ? args !== undefined && args.remarks : null
+          else this.remarks = []
         }
       }
 
@@ -397,12 +411,12 @@
           ]),
         new Question("Bicycling throughout the year and in any weather?", false, [
             new Option("Throughout the year and any weather", {
-              long_tail: new Score(0.75, {remarks: ["Make sure accessories such as raincover are available for bicycle model of your choice.", "Consider using winter tyres in the winter."]}),
+              long_tail: new Score(0.75, {remarks: ["Consider using winter tyres in the winter."]}),
               two_wheel: 0.9,
               three_wheel: 1.2,
               trailer: 0.5,
               ebike: 2,
-            }),
+            }, {remarks: ["Make sure accessories such as raincover are available for bicycle model of your choice."]}),
             new Option("No, summer only", {
               long_tail: 1,
               two_wheel: 1,
@@ -534,7 +548,7 @@
               ebike: ebike,
             }
           },
-          remarks(category) {
+          remarksForCategory(category) {
             var ret = []
 
             questions.forEach(question => {
@@ -552,18 +566,36 @@
                 } else if (score < 0.0) {
                   cssClass = "verybad"
                 }
+
                 ret.push({
                   question: question.text,
                   score: score,
                   remarks: selectedOption.scores[category].remarks,
                   cssClass: cssClass,
                 })
-
               })
             })
 
             return ret
-          }
+          },
+          remarksForSelectedOptions() {
+            var ret = []
+
+            questions.forEach(question => {
+              var selectedOptions = (Array.isArray(question.selectedOptions)) ? question.selectedOptions : [question.selectedOptions]
+
+              selectedOptions.forEach(selectedOption => {
+                if (!selectedOption || !selectedOption.remarks.length) return
+
+                ret.push({
+                  question: question.text,
+                  remarks: selectedOption.remarks,
+                })
+              })
+            })
+
+            return ret
+          },
         }
       }).use(i18n).mount("#app")
     </script>
