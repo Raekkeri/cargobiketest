@@ -500,11 +500,8 @@
           checkResults() {
             var total = {}
             questions.forEach(q => {
-              var selectedOptions = q.selectedOptions
-              if (!Array.isArray(selectedOptions)) selectedOptions = [selectedOptions]
-              if (!selectedOptions.length) return
+              var selectedOptions = (Array.isArray(q.selectedOptions)) ? q.selectedOptions : [q.selectedOptions]
               selectedOptions.forEach(selectedOption => {
-                if (!selectedOption) return
                 Object.keys(selectedOption.scores).forEach(k => {
                   var score = selectedOption.scores[k].score
                   score = selectedOption.important ? score * 2 : score
@@ -529,9 +526,9 @@
             var ret = []
 
             questions.forEach(question => {
-              if (!question.selectedOptions.length) return
+              var selectedOptions = (Array.isArray(question.selectedOptions)) ? question.selectedOptions : [question.selectedOptions]
 
-              question.selectedOptions.forEach(selectedOption => {
+              selectedOptions.forEach(selectedOption => {
                 if (!selectedOption || !selectedOption.scores[category].remarks.length) return
 
                 var score = selectedOption.scores[category].score
