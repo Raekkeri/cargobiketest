@@ -78,6 +78,11 @@
         text-decoration: underline;
       }
 
+      .questions-answered-count {
+        margin-top: 40px;
+        text-align: center;
+      }
+
       .results > div {
         margin-top: 10px;
         margin-bottom: 10px;
@@ -215,9 +220,13 @@
             </template>
           </form>
         </div>
+        <div v-if="answeredQuestions < questions.length" class="questions-answered-count">
+          {{ $t("Questions answered") }} {{ answeredQuestions }} / {{ questions.length }}
+        </div>
       </div>
 
-      <div class="results" v-if="results.categories.length">
+
+      <div class="results" v-if="answeredQuestions == questions.length || (debug && results.categories.length)">
         <h2>{{ $t("Results") }}:</h2>
         <span>{{ $t("Best suited for you...") }}</span>
         <template v-for="(result, index) in results.categories">
@@ -311,9 +320,12 @@
           this.text = text
           this.multiselect = multiselect
           this.id = text
-          this.selectedOption = null
           this.options = options
           this.selectedOptions = []
+        }
+        isAnwered() {
+          if (Array.isArray(this.selectedOptions)) return Boolean(this.selectedOptions.length)
+          return Boolean(this.selectedOptions)
         }
       }
 
@@ -346,7 +358,7 @@
         }
       }
 
-      var questions = [
+      var allQuestions = [
         new Question(
           "Need for transport?", true, [
             new Option("Daily groceries", {
@@ -515,17 +527,23 @@
       Vue.createApp({
         data() {
           return {
-            questions: questions,
+            questions: allQuestions,
             results: {
               categories: [],
               ebike: null,
-            }
+            },
+            debug: window.location.href.includes("?debug"),
+          }
+        },
+        computed: {
+          answeredQuestions() {
+            return this.questions.map(q => q.isAnwered()).filter(a => a).length
           }
         },
         methods: {
           checkResults() {
             var total = {}
-            questions.forEach(q => {
+            this.questions.forEach(q => {
               var selectedOptions = (Array.isArray(q.selectedOptions)) ? q.selectedOptions : [q.selectedOptions]
               selectedOptions.forEach(selectedOption => {
                 Object.keys(selectedOption.scores).forEach(k => {
@@ -551,7 +569,7 @@
           remarksForCategory(category) {
             var ret = []
 
-            questions.forEach(question => {
+            this.questions.forEach(question => {
               var selectedOptions = (Array.isArray(question.selectedOptions)) ? question.selectedOptions : [question.selectedOptions]
 
               selectedOptions.forEach(selectedOption => {
@@ -581,7 +599,7 @@
           remarksForSelectedOptions() {
             var ret = []
 
-            questions.forEach(question => {
+            this.questions.forEach(question => {
               var selectedOptions = (Array.isArray(question.selectedOptions)) ? question.selectedOptions : [question.selectedOptions]
 
               selectedOptions.forEach(selectedOption => {
