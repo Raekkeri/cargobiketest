@@ -327,6 +327,12 @@
           if (Array.isArray(this.selectedOptions)) return Boolean(this.selectedOptions.length)
           return Boolean(this.selectedOptions)
         }
+        getSelectedOptions() {
+          if (this.isAnwered()) {
+            return (Array.isArray(this.selectedOptions)) ? this.selectedOptions : [this.selectedOptions]
+          }
+          return []
+        }
       }
 
       class Option {
@@ -532,6 +538,7 @@
               categories: [],
               ebike: null,
             },
+            startTime: new Date(),
             debug: window.location.href.includes("?debug"),
           }
         },
@@ -564,6 +571,15 @@
             this.results = {
               categories: total,
               ebike: ebike,
+            }
+
+            if (this.answeredQuestions == this.questions.length) {
+              try {
+                this.logResults()
+              } catch(err) {
+                console.log("Failed to log results")
+                console.log(err)
+              }
             }
           },
           remarksForCategory(category) {
@@ -614,7 +630,19 @@
 
             return ret
           },
-        }
+          logResults() {
+            const params = {
+              id: crypto.randomUUID().substr(0,8),
+              t: Math.round((new Date() - this.startTime) / 1000),
+              s: this.questions.map(q => this.questions.indexOf(q).toString() + ":" + q.getSelectedOptions().map(o => q.options.indexOf(o)).join(",")).join(";"),
+              r: this.results["categories"].map(r => r[0]).join(","),
+              e: this.results["ebike"],
+            }
+            var xmlHttp = new XMLHttpRequest()
+            xmlHttp.open("GET", "l.gif?" + new URLSearchParams(params).toString(), false)
+            xmlHttp.send(null)
+          },
+        },
       }).use(i18n).mount("#app")
     </script>
 
