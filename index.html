@@ -358,6 +358,13 @@
               trailer: 0.25,
               ebike: 1,
             }),
+            new Option("Often without any significant cargo", {
+              long_tail: new Score(1, {remarks: ["Long tail bicycle is closest to a normal bike"]}),
+              two_wheel: 0.5,
+              three_wheel: 0,
+              trailer: 0,
+              ebike: 0,
+            }),
           ]),
         new Question(
           "Daily commute or occasionally?", false, [
@@ -376,8 +383,8 @@
               ebike: 0.2,
             }),
           ]),
-        new Question("Bicycling throughout the year?", false, [
-            new Option("Yes (summer and winter)", {
+        new Question("Bicycling throughout the year and in any weather?", false, [
+            new Option("Throughout the year and any weather", {
               long_tail: new Score(0.75, {remarks: ["Make sure accessories such as raincover are available for bicycle model of your choice.", "Consider using winter tyres in the winter."]}),
               two_wheel: 0.9,
               three_wheel: 1.2,
@@ -409,21 +416,28 @@
             }),
           ]),
         new Question("Price?", false, [
-            new Option("0-2000e", {
-              long_tail: 0.5,
+            new Option("0 - 2000€", {
+              long_tail: 0.4,
               two_wheel: 1,
               three_wheel: new Score(-0.5, {remarks: ["Finding a three wheel cargo bike in this price range might prove difficult"]}),
               trailer: 1,
               ebike: -1,
             }),
-            new Option("2000-5000e", {
-              long_tail: 0.75,
-              two_wheel: 1,
+            new Option("2000 - 3000€", {
+              long_tail: 0.6,
+              two_wheel: 0.8,
               three_wheel: 0.5,
               trailer: 1,
               ebike: 0.5
             }),
-            new Option("5000e-", {
+            new Option("3000 - 5000€", {
+              long_tail: 0.9,
+              two_wheel: 1,
+              three_wheel: 0.6,
+              trailer: 1,
+              ebike: 0.7
+            }),
+            new Option("5000€ -", {
               long_tail: 1,
               two_wheel: 1,
               three_wheel: 1,
@@ -452,6 +466,22 @@
               three_wheel: new Score(0.3, {remarks: ["Driving long distances with a three wheel cargo bike tedious due to its lack of agility."]}),
               trailer: 0.5,
               ebike: 1.5
+            }),
+          ]),
+        new Question("Parking?", false, [
+            new Option("I have plenty of space to park the bicycle", {
+              long_tail: 1,
+              two_wheel: 1,
+              three_wheel: 1,
+              trailer: 1,
+              ebike: 0,
+            }),
+            new Option("Parking space is very limited", {
+              long_tail: 1,
+              two_wheel: 0.3,
+              three_wheel: 0,
+              trailer: 0.5,
+              ebike: 0
             }),
           ]),
       ]
