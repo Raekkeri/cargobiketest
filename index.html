@@ -241,6 +241,8 @@
     </div>
 
     <script>
+      const EN_CARRYING_MORE_THAN_2 = "Carrying more than 2 children is usually not possible"
+      const EN_LONG_TAIL_IS_CLOSEST = "Long tail bicycle is closest to a normal bike"
 
       const messages = {
         "fi": {
@@ -251,8 +253,10 @@
           "Need for transport?": "Mitä kuljetat?",
           "Daily groceries": "Päivittäisiä ostoksia",
           "Heavy duty cargo": "Raskasta tavaraa",
-          "1 - 2 children": "1 - 2 lasta",
+          "1 child": "1 lasta",
+          "2 children": "2 lasta",
           "3 - 4 children": "3 - 4 lasta",
+          "Often without any significant cargo": "Usein ilman merkittävää kuormaa",
           "Results": "Tulokset",
           "long_tail": "Pitkäperäpyörä",
           "two_wheel": "2-renkainen rahtipyörä",
@@ -261,7 +265,8 @@
           "Best suited for you...": "Sinulle sopisi parhaiten...",
           "Make sure there is enough space for two children.": "Varmista, että pyörässä on tilaa kahdelle lapselle",
           "e-assist": "Sähköavuste",
-          "Carrying more than 2 children is usually not possible": "Useamman kuin kahden lapsen kuljettaminen ei tyypillisesti ole mahdollista",
+          [EN_CARRYING_MORE_THAN_2]: "Useamman kuin kahden lapsen kuljettaminen ei tyypillisesti ole mahdollista",
+          [EN_LONG_TAIL_IS_CLOSEST]: "Pitkäperäpyörä on ajettavuudeltaan lähimpänä normaalia pyörää.",
           "Driveability?": "Ajettavuus?",
           "Agility before all": "Ketteryys ennen kaikkea",
           "Steadier the better": "Mitä vakaampi sen parempi",
@@ -344,22 +349,29 @@
               trailer: 0.5,
               ebike: 1,
             }),
-            new Option("1 - 2 children", {
-              long_tail: 0.8,
-              two_wheel: new Score(0.9, {remarks: ["Make sure there is enough space for two children."]}),
+            new Option("1 child", {
+              long_tail: 1,
+              two_wheel: 1,
               three_wheel: 1,
               trailer: 1,
               ebike: 1,
             }),
+            new Option("2 children", {
+              long_tail: 0.8,
+              two_wheel: new Score(0.9, {remarks: ["Make sure there is enough space for two children."]}),
+              three_wheel: 1,
+              trailer: 0.8,
+              ebike: 1,
+            }),
             new Option("3 - 4 children", {
-              long_tail: new Score(0, {remarks: ["Carrying more than 2 children is usually not possible"]}),
-              two_wheel: new Score(0, {remarks: ["Carrying more than 2 children is usually not possible"]}),
+              long_tail: new Score(0, {remarks: [EN_CARRYING_MORE_THAN_2]}),
+              two_wheel: new Score(0, {remarks: [EN_CARRYING_MORE_THAN_2]}),
               three_wheel: 0.75,
               trailer: 0.25,
               ebike: 1,
             }),
             new Option("Often without any significant cargo", {
-              long_tail: new Score(1, {remarks: ["Long tail bicycle is closest to a normal bike"]}),
+              long_tail: new Score(1, {remarks: [EN_LONG_TAIL_IS_CLOSEST]}),
               two_wheel: 0.5,
               three_wheel: 0,
               trailer: 0,
@@ -401,7 +413,7 @@
           ]),
         new Question("Driveability?", false, [
             new Option("Agility before all", {
-              long_tail: new Score(1, {remarks: ["Long tail bicycle is closest to a normal bike"]}),
+              long_tail: new Score(1, {remarks: [EN_LONG_TAIL_IS_CLOSEST]}),
               two_wheel: 0.7,
               three_wheel: 0.3,
               trailer: 0.7,
