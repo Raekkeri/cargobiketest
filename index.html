@@ -247,7 +247,7 @@
           </template>
         </template>
         <div class="result-category" :style="{background: 'linear-gradient(to right, #BBE4E5 0%, rgba(0,0,0,0) ' + (results.ebike / results.categories[0][1] * 100) + '%'}">
-          {{ $t("e-assist") }}?
+          {{ $t("e-assist") }}? {{ $t(results.ebikeReco) }}
         </div>
 
         <a class="redo" href=".">{{ $t("Redo test!") }}</a>
@@ -292,6 +292,10 @@
           "important": "Tärkeä",
           "add more weight": "Painota tätä vastausta enemmän.",
           "Redo test!": "Tee testi uudestaan!",
+          "Absolutely.": "Ehdottomasti.",
+          "Recommended.": "Suositeltava.",
+          "Not necessarily.": "Ei välttämättä.",
+          "Not very important.": "Ei kovin tärkeä.",
         },
         "en": {
           "Welcome": "Welcome to Cargo bike test! This test helps you to figure out with kind of cargo or family bike would suit you best.",
@@ -568,9 +572,12 @@
             total = Object.entries(total)
             total.sort((a, b) => a[1] - b[1])
             total.reverse()
+
+
             this.results = {
               categories: total,
               ebike: ebike,
+              ebikeReco: getEbikeReco(ebike / total[0][1]),
             }
 
             if (this.answeredQuestions == this.questions.length) {
@@ -644,6 +651,13 @@
           },
         },
       }).use(i18n).mount("#app")
+
+      function getEbikeReco(points) {
+        if (points > 0.75) return "Absolutely."
+        else if (points > 0.5) return "Recommended."
+        else if (points > 0.25) return "Not necessarily."
+        else return "Not very important."
+      }
     </script>
 
   </body>
