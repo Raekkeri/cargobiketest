@@ -94,12 +94,15 @@
       }
       .results > div:nth-of-type(1) {
         font-size: 1.3em;
+        line-height: 1.35em;
       }
       .results > div:nth-of-type(2) {
         font-size: 1.2em;
+        line-height: 1.25em;
       }
       .results > div:nth-of-type(3) {
         font-size: 1.1em;
+        line-height: 1.15em;
       }
       .results > div:nth-of-type(1) .result-position {
         width: 1.3em;
@@ -127,6 +130,11 @@
         border-radius: 50%;
         border: 1px solid green;
         text-align: center;
+        position: absolute;
+      }
+
+      .result-name {
+        margin-left: 50px;
       }
 
       .result-category {
@@ -231,7 +239,7 @@
         <span>{{ $t("Best suited for you...") }}</span>
         <template v-for="(result, index) in results.categories">
           <div class="result-category" :style="{background: 'linear-gradient(to right, #95efb1 0%, rgba(0,0,0,0) ' + (result[1] / results.categories[0][1] * 100) + '%'}">
-            <span class="result-position">{{ index + 1 }}</span> {{ $t(result[0]) }}
+            <span class="result-position">{{ index + 1 }}</span> <span class="result-name">{{ $t(result[0]) }}</span>
           </div>
           <ul>
             <li v-for="remark in remarksForCategory(result[0])" :class="remark.cssClass + ' remark'">
