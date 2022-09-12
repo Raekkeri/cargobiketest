@@ -150,7 +150,6 @@
       }
 
       li .remark-question {
-        color: #777;
         font-style: italic;
         margin-right: 8px;
       }
@@ -162,14 +161,15 @@
 
       li.remark {
         margin-bottom: 20px;
+        color: #777;
       }
-      .good.remark {
+      .good.remark-text {
         color: #1fcd55;
       }
-      .bad.remark {
+      .bad.remark-text {
         color: #C26161;
       }
-      .verybad.remark {
+      .verybad.remark-text {
         color: #BA4D4D;
       }
       .common-remarks-list .remark {
@@ -242,17 +242,12 @@
             <span class="result-position">{{ index + 1 }}</span> <span class="result-name">{{ $t(result[0]) }}</span>
           </div>
           <ul>
-            <li v-for="remark in remarksForCategory(result[0])" :class="remark.cssClass + ' remark'">
-              <span class="remark-question">"{{ $t(remark.question) }}"</span> <span v-for="remark in remark.remarks" class="remark-text">{{ $t(remark) }}</span>
+            <li v-for="remark in remarksForCategory(result[0], index === 0)" class="remark">
+              <span class="remark-question">"{{ $t(remark.question) }}"</span>
+              <span v-for="remarkText in remark.remarks" :class="remark.cssClass + ' remark-text'">{{ $t(remarkText) }}</span>
+              <span v-for="remarkText in remark.selectedOptionRemarks" class="good remark-text">{{ $t(remarkText) }}</span>
             </li>
           </ul>
-          <template v-if="index == 0 && remarksForSelectedOptions().length">
-          <ul class="common-remarks-list">
-            <li v-for="remark in remarksForSelectedOptions()" class="remark">
-              <span class="remark-question">"{{ $t(remark.question) }}"</span> <span v-for="remark in remark.remarks" class="remark-text">{{ $t(remark) }}</span>
-            </li>
-          </ul>
-          </template>
         </template>
         <div class="result-category" :style="{background: 'linear-gradient(to right, #BBE4E5 0%, rgba(0,0,0,0) ' + (results.ebike / results.categories[0][1] * 100) + '%'}">
           {{ $t("e-assist") }}? {{ $t(results.ebikeReco) }}
@@ -597,14 +592,12 @@
               }
             }
           },
-          remarksForCategory(category) {
+          remarksForCategory(category, includeOptionsRemarks) {
             var ret = []
 
             this.questions.forEach(question => {
-              var selectedOptions = (Array.isArray(question.selectedOptions)) ? question.selectedOptions : [question.selectedOptions]
-
-              selectedOptions.forEach(selectedOption => {
-                if (!selectedOption || !selectedOption.scores[category].remarks.length) return
+              question.getSelectedOptions().forEach(selectedOption => {
+                if (!selectedOption.scores[category].remarks.length) return
 
                 var score = selectedOption.scores[category].score
                 var cssClass = "";
@@ -620,26 +613,14 @@
                   question: question.text,
                   score: score,
                   remarks: selectedOption.scores[category].remarks,
+                  selectedOptionRemarks: [],
                   cssClass: cssClass,
                 })
-              })
-            })
 
-            return ret
-          },
-          remarksForSelectedOptions() {
-            var ret = []
+                if (includeOptionsRemarks) {
+                  ret[ret.length - 1].selectedOptionRemarks = selectedOption.remarks
+                }
 
-            this.questions.forEach(question => {
-              var selectedOptions = (Array.isArray(question.selectedOptions)) ? question.selectedOptions : [question.selectedOptions]
-
-              selectedOptions.forEach(selectedOption => {
-                if (!selectedOption || !selectedOption.remarks.length) return
-
-                ret.push({
-                  question: question.text,
-                  remarks: selectedOption.remarks,
-                })
               })
             })
 
