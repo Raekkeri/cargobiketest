@@ -230,7 +230,7 @@
         <h2>{{ $t("Results") }}:</h2>
         <span>{{ $t("Best suited for you...") }}</span>
         <template v-for="(result, index) in results.categories">
-          <div class="result-category" :style="{background: 'linear-gradient(to right, #95efb1 ' + (result[1] / results.categories[0][1] * 100) + '%, rgba(0,0,0,0) ' + (result[1] / results.categories[0][1] * 100) + '%'}">
+          <div class="result-category" :style="{background: 'linear-gradient(to right, #95efb1 0%, rgba(0,0,0,0) ' + (result[1] / results.categories[0][1] * 100) + '%'}">
             <span class="result-position">{{ index + 1 }}</span> {{ $t(result[0]) }}
           </div>
           <ul>
@@ -246,7 +246,7 @@
           </ul>
           </template>
         </template>
-        <div class="result-category" :style="{background: 'linear-gradient(to right, #BBE4E5 ' + (results.ebike / results.categories[0][1] * 100) + '%, rgba(0,0,0,0) ' + (results.ebike / results.categories[0][1] * 100) + '%'}">
+        <div class="result-category" :style="{background: 'linear-gradient(to right, #BBE4E5 0%, rgba(0,0,0,0) ' + (results.ebike / results.categories[0][1] * 100) + '%'}">
           {{ $t("e-assist") }}?
         </div>
 
