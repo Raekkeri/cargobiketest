@@ -169,7 +169,7 @@
         color: #1fcd55;
       }
       .bad.remark-text {
-        color: #C26161;
+        color: #BA844D;
       }
       .verybad.remark-text {
         color: #BA4D4D;
@@ -246,7 +246,7 @@
           <ul>
             <li v-for="remark in remarksForCategory(result[0], index === 0)" class="remark">
               <span class="remark-question">"{{ $t(remark.question) }}"</span>
-              <span v-for="remarkText in remark.remarks" :class="remark.cssClass + ' remark-text'">{{ $t(remarkText) }}</span>
+              <span v-for="remarkData in remark.remarks" :class="remarkData.cssClass + ' remark-text'">{{ $t(remarkData.text) }}</span>
               <span v-for="remarkText in remark.selectedOptionRemarks" class="good remark-text">{{ $t(remarkText) }}</span>
             </li>
           </ul>
@@ -373,6 +373,61 @@
         }
       }
 
+      class OptionCombo {
+        constructor(args) {
+          this.options = args.options
+          this.remarks = args.remarks
+          this.scores = {}
+          Object.keys(args.scores).forEach(key => {
+            if (!(args.scores[key] instanceof Score)) {
+              this.scores[key] = new Score(args.scores[key])
+            } else {
+              this.scores[key] = args.scores[key]
+            }
+          })
+        }
+      }
+
+      OPTION_1_CHILD = new Option("1 child", {
+        long_tail: 1,
+        two_wheel: 1,
+        three_wheel: 1,
+        trailer: 1,
+        ebike: 1,
+      })
+
+      OPTION_2_CHILDREN = new Option("2 children", {
+        long_tail: 0.8,
+        two_wheel: new Score(0.9, {remarks: ["Make sure there is enough space for two children."]}),
+        three_wheel: 1,
+        trailer: 0.8,
+        ebike: 1,
+      })
+
+      OPTION_3_4_CHILDREN = new Option("3 - 4 children", {
+        long_tail: new Score(0, {remarks: [EN_CARRYING_MORE_THAN_2]}),
+        two_wheel: new Score(0, {remarks: [EN_CARRYING_MORE_THAN_2]}),
+        three_wheel: 0.75,
+        trailer: 0.25,
+        ebike: 1,
+      })
+
+      OPTION_DAILY = new Option("Daily", {
+        long_tail: 0.75,
+        two_wheel: 0.75,
+        three_wheel: 1,
+        trailer: 0.5,
+        ebike: 1,
+      })
+
+      OPTION_THROUGHOUT_YEAR = new Option("Throughout the year and any weather", {
+        long_tail: new Score(0.75, {remarks: ["Consider using winter tyres in the winter."]}),
+        two_wheel: 0.9,
+        three_wheel: 1.2,
+        trailer: 0.5,
+        ebike: 2,
+      }, {remarks: ["Make sure accessories such as raincover are available for bicycle model of your choice."]})
+
       var allQuestions = [
         new Question(
           "Need for transport?", true, [
@@ -390,27 +445,9 @@
               trailer: 0.5,
               ebike: 1,
             }),
-            new Option("1 child", {
-              long_tail: 1,
-              two_wheel: 1,
-              three_wheel: 1,
-              trailer: 1,
-              ebike: 1,
-            }),
-            new Option("2 children", {
-              long_tail: 0.8,
-              two_wheel: new Score(0.9, {remarks: ["Make sure there is enough space for two children."]}),
-              three_wheel: 1,
-              trailer: 0.8,
-              ebike: 1,
-            }),
-            new Option("3 - 4 children", {
-              long_tail: new Score(0, {remarks: [EN_CARRYING_MORE_THAN_2]}),
-              two_wheel: new Score(0, {remarks: [EN_CARRYING_MORE_THAN_2]}),
-              three_wheel: 0.75,
-              trailer: 0.25,
-              ebike: 1,
-            }),
+            OPTION_1_CHILD,
+            OPTION_2_CHILDREN,
+            OPTION_3_4_CHILDREN,
             new Option("Often without any significant cargo", {
               long_tail: new Score(1, {remarks: [EN_LONG_TAIL_IS_CLOSEST]}),
               two_wheel: 0.5,
@@ -421,13 +458,7 @@
           ]),
         new Question(
           "Daily commute or occasionally?", false, [
-            new Option("Daily", {
-              long_tail: 0.75,
-              two_wheel: 0.75,
-              three_wheel: 1,
-              trailer: 0.5,
-              ebike: 1,
-            }),
+            OPTION_DAILY,
             new Option("No, just leisure", {
               long_tail: 1,
               two_wheel: 1,
@@ -437,13 +468,7 @@
             }),
           ]),
         new Question("Bicycling throughout the year and in any weather?", false, [
-            new Option("Throughout the year and any weather", {
-              long_tail: new Score(0.75, {remarks: ["Consider using winter tyres in the winter."]}),
-              two_wheel: 0.9,
-              three_wheel: 1.2,
-              trailer: 0.5,
-              ebike: 2,
-            }, {remarks: ["Make sure accessories such as raincover are available for bicycle model of your choice."]}),
+            OPTION_THROUGHOUT_YEAR,
             new Option("No, summer only", {
               long_tail: 1,
               two_wheel: 1,
@@ -539,13 +564,28 @@
           ]),
       ]
 
+      const optionCombos = [new OptionCombo({
+        options: [[OPTION_1_CHILD, OPTION_2_CHILDREN, OPTION_3_4_CHILDREN], [OPTION_DAILY, OPTION_THROUGHOUT_YEAR]],
+        remarks: ["To keep passengers dry and warm, consider a raincover."],
+        scores: {
+          long_tail: new Score(0.5, {remarks: ["Long tails have fewer options for weather covers."]}),
+          two_wheel: 1,
+          three_wheel: 1,
+          trailer: 1,
+          ebike: 1,
+        }
+      })]
+
       Vue.createApp({
         data() {
           return {
             questions: allQuestions,
+            optionCombos: optionCombos,
             results: {
               categories: [],
               ebike: null,
+              ebikeReco: "",
+              combos: {},
             },
             startTime: new Date(),
             debug: window.location.href.includes("?debug"),
@@ -559,15 +599,17 @@
         methods: {
           checkResults() {
             var total = {}
+            const combos = this.getActiveCombos()
+
             this.questions.forEach(q => {
-              var selectedOptions = (Array.isArray(q.selectedOptions)) ? q.selectedOptions : [q.selectedOptions]
+              var selectedOptions = q.getSelectedOptions()
               selectedOptions.forEach(selectedOption => {
-                Object.keys(selectedOption.scores).forEach(k => {
-                  var score = selectedOption.scores[k].score
-                  score = selectedOption.important ? score * 2 : score
-                  score = score / selectedOptions.length;
-                  (k in total) ? total[k] += score : total[k] = score
-                })
+                applyScoresToTotal(total, selectedOption.scores, selectedOption.important, selectedOptions.length)
+                if (selectedOption.id in combos) {
+                  for (const combo of combos[selectedOption.id]) {
+                    applyScoresToTotal(total, combo.scores, false, 1)
+                  }
+                }
               })
             })
 
@@ -582,7 +624,8 @@
             this.results = {
               categories: total,
               ebike: ebike,
-              ebikeReco: getEbikeReco(ebike / total[0][1]),
+              ebikeReco: getEbikeReco(ebike / (total.length ? total[0][1] : 1)),
+              combos: combos,
             }
 
             if (this.answeredQuestions == this.questions.length) {
@@ -599,29 +642,64 @@
 
             this.questions.forEach(question => {
               question.getSelectedOptions().forEach(selectedOption => {
-                const remarks = selectedOption.scores[category].remarks
-                const selectedOptionRemarks = includeOptionsRemarks ? selectedOption.remarks : []
+                const remarks = selectedOption.scores[category].remarks.map(r => {
+                  return {
+                    text: r,
+                    cssClass: getRemarkCssClass(selectedOption.scores[category].score)
+                  }
+                })
+                const selectedOptionRemarks = []
+                const combos = (selectedOption.id in this.results.combos) ? this.results.combos[selectedOption.id] : []
+
+                if (includeOptionsRemarks) {
+                  selectedOptionRemarks.push(...selectedOption.remarks)
+                }
+
+                for (const combo of combos) {
+                  remarks.push(...combo.scores[category].remarks.map(r => {
+                    return {
+                      text: r,
+                      cssClass: getRemarkCssClass(combo.scores[category].score),
+                    }
+                  }))
+                  if (includeOptionsRemarks) {
+                    selectedOptionRemarks.push(...combo.remarks)
+                  }
+                }
 
                 if (!remarks.length && !selectedOptionRemarks.length) return
 
-                const score = selectedOption.scores[category].score
-                var cssClass = "";
-                if (score >= 0.5) {
-                  cssClass = "good"
-                } else if (score >= 0.0) {
-                  cssClass = "bad"
-                } else if (score < 0.0) {
-                  cssClass = "verybad"
-                }
-
                 ret.push({
                   question: question.text,
-                  score: score,
                   remarks: remarks,
                   selectedOptionRemarks: selectedOptionRemarks,
-                  cssClass: cssClass,
                 })
               })
+            })
+
+            return ret
+          },
+          getActiveCombos() {
+            const ret = {}
+            const selectedOptions = []
+            this.questions.map(q => selectedOptions.push(...q.getSelectedOptions()))
+
+            this.optionCombos.forEach(combo => {
+              var optionsMatch = 0;
+              var firstMatch = null
+              combo.options.forEach(options => {
+                for (const option of options) {
+                  if (selectedOptions.includes(option)) {
+                    optionsMatch += 1
+                    if (!firstMatch) firstMatch = option.id
+                    break
+                  }
+                }
+              })
+              if (optionsMatch == combo.options.length) {
+                if (firstMatch in ret) ret[firstMatch].push(combo)
+                else ret[firstMatch] = [combo]
+              }
             })
 
             return ret
@@ -646,6 +724,21 @@
         else if (points > 0.5) return "Recommended."
         else if (points > 0.25) return "Not necessarily."
         else return "Not very important."
+      }
+
+      function getRemarkCssClass(score) {
+        if (score > 0.5) return "good"
+        else if (score > 0.0) return "bad"
+        else return "verybad"
+      }
+
+      function applyScoresToTotal(total, scores, isImportant, selectedCount) {
+        Object.keys(scores).forEach(k => {
+          var score = scores[k].score
+          score = isImportant ? score * 2 : score
+          score = score / selectedCount;
+          (k in total) ? total[k] += score : total[k] = score
+        })
       }
     </script>
 
