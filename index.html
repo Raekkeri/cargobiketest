@@ -89,6 +89,9 @@
         padding-top: 5px;
         padding-bottom: 5px;
       }
+      .results > div:not(:first-child) {
+        margin-top: 30px;
+      }
       .results li {
         margin-bottom: 10px;
       }
@@ -160,7 +163,6 @@
       }
 
       li.remark {
-        margin-bottom: 20px;
         color: #777;
       }
       .good.remark-text {
@@ -597,9 +599,12 @@
 
             this.questions.forEach(question => {
               question.getSelectedOptions().forEach(selectedOption => {
-                if (!selectedOption.scores[category].remarks.length) return
+                const remarks = selectedOption.scores[category].remarks
+                const selectedOptionRemarks = includeOptionsRemarks ? selectedOption.remarks : []
 
-                var score = selectedOption.scores[category].score
+                if (!remarks.length && !selectedOptionRemarks.length) return
+
+                const score = selectedOption.scores[category].score
                 var cssClass = "";
                 if (score >= 0.5) {
                   cssClass = "good"
@@ -612,15 +617,10 @@
                 ret.push({
                   question: question.text,
                   score: score,
-                  remarks: selectedOption.scores[category].remarks,
-                  selectedOptionRemarks: [],
+                  remarks: remarks,
+                  selectedOptionRemarks: selectedOptionRemarks,
                   cssClass: cssClass,
                 })
-
-                if (includeOptionsRemarks) {
-                  ret[ret.length - 1].selectedOptionRemarks = selectedOption.remarks
-                }
-
               })
             })
 
