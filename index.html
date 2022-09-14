@@ -61,6 +61,17 @@
         padding-right: 20px;
       }
 
+      label.option-label input[type="checkbox"] {
+        margin-right: 20px;
+
+        /* Double-sized Checkboxes */
+        -ms-transform: scale(1.5); /* IE */
+        -moz-transform: scale(1.5); /* FF */
+        -webkit-transform: scale(1.5); /* Safari and Chrome */
+        -o-transform: scale(1.5); /* Opera */
+        transform: scale(1.5);
+      }
+
       .important-option {
         display: inline-block;
         color: rgba(0,0,0,0.6);
@@ -184,6 +195,11 @@
         margin-top: 40px;
       }
 
+      .bottom-links {
+        margin-top: 20px;
+        font-size: 0.6em;
+      }
+
     </style>
   </head>
 
@@ -260,6 +276,7 @@
 
       <div class="bottom-about">
         Rahtipyörätesti 2022
+        <div class="bottom-links"><a href="https://github.com/Raekkeri/cargobiketest">GitHub</a></div>
       </div>
 
     </div>
@@ -267,12 +284,13 @@
     <script>
       const EN_CARRYING_MORE_THAN_2 = "Carrying more than 2 children is usually not possible"
       const EN_LONG_TAIL_IS_CLOSEST = "Long tail bicycle is closest to a normal bike"
+      const EN_3_WHEEL_LACK_OF_AGILITY = "Driving long distances with a three wheel cargo bike tedious due to its lack of agility."
+      const EN_2_WHEEL_GOOD_OPTION = "Two wheel is a good option between a three wheel and a long tail bicycle: it's more agile than a three wheel, and steadier than a long tail bicycle."
 
       const messages = {
         "fi": {
           "Welcome": "Tervetuloa Rahtipyörätestiin! Testin avulla voit kartoittaa, minkä tyyppinen rahti- tai perhepyörä sinulle sopisi parhaiten. Valitse kysymyksiin omiin tarpeisiisi osuvin vastaus. Tulokset löydät sivun lopusta.",
           "Cargo bike test": "Rahtipyörätesti",
-          "Daily": "Päivittäin",
           "Choose language": "Valitse kieli",
           "Need for transport?": "Mitä kuljetat?",
           "Daily groceries": "Päivittäisiä ostoksia",
@@ -287,10 +305,25 @@
           "three_wheel": "3-renkainen rahtipyörä",
           "trailer": "Pyöräperäkärry",
           "Best suited for you...": "Sinulle sopisi parhaiten...",
+          "Daily commute or occasionally?": "Päivittäistä työmatkapyöräilyä vai vain silloin tällöin?",
+          "Daily": "Päivittäistä työmatkapyöräilyä",
+          "No, just leisure": "Silloin tällöin",
+          "Bicycling throughout the year and in any weather?": "Pyöräily läpi vuoden ja kelillä kuin kelillä?",
+          "Throughout the year and any weather": "Läpi vuoden ja kelistä riippumatta",
+          "No, summer only": "Vain kesäisin",
+          "Price?": "Hinta?",
+          "Usual travel distance?": "Tyypillinen matkan pituus?",
+          "Less than 3km": "Alle 3km",
+          "More than 7km": "Yli 7km",
+          "Parking?": "Pysäköinti?",
+          "I have plenty of space to park the bicycle": "Minulla on paljon tilaa pysäköintiin",
+          "Parking space is very limited": "Pysäköintitilaa on rajoitetusti",
           "Make sure there is enough space for two children.": "Varmista, että pyörässä on tilaa kahdelle lapselle",
+          "Need to transport an infant in a safety seat": "Tarve kuljettaa vauvaa turvakaukalossa",
           "e-assist": "Sähköavuste",
           [EN_CARRYING_MORE_THAN_2]: "Useamman kuin kahden lapsen kuljettaminen ei tyypillisesti ole mahdollista",
           [EN_LONG_TAIL_IS_CLOSEST]: "Pitkäperäpyörä on ajettavuudeltaan lähimpänä normaalia pyörää.",
+          [EN_3_WHEEL_LACK_OF_AGILITY]: "Pidemmän matkan ajaminen 3-pyöräisellä voi olla puuduttavaa sen huonon ketteryyden vuoksi.",
           "Driveability?": "Ajettavuus?",
           "Agility before all": "Ketteryys ennen kaikkea",
           "Steadier the better": "Mitä vakaampi sen parempi",
@@ -301,6 +334,7 @@
           "Recommended.": "Suositeltava.",
           "Not necessarily.": "Ei välttämättä.",
           "Not very important.": "Ei kovin tärkeä.",
+          "No difference": "Ei väliä",
         },
         "en": {
           "Welcome": "Welcome to Cargo bike test! This test helps you to figure out with kind of cargo or family bike would suit you best.",
@@ -412,6 +446,14 @@
         ebike: 1,
       })
 
+      OPTION_INFANT = new Option("Need to transport an infant in a safety seat", {
+        long_tail: new Score(0, {remarks: ["Attaching a safety seat for an infant is typically not possible."]}),
+        two_wheel: 1,
+        three_wheel: 1,
+        trailer: 0.5,
+        ebike: 1,
+      })
+
       OPTION_DAILY = new Option("Daily", {
         long_tail: 0.75,
         two_wheel: 0.75,
@@ -422,7 +464,7 @@
 
       OPTION_THROUGHOUT_YEAR = new Option("Throughout the year and any weather", {
         long_tail: new Score(0.75, {remarks: ["Consider using winter tyres in the winter."]}),
-        two_wheel: 0.9,
+        two_wheel: new Score(0.9, {remarks: [EN_2_WHEEL_GOOD_OPTION]}),
         three_wheel: 1.2,
         trailer: 0.5,
         ebike: 2,
@@ -448,6 +490,7 @@
             OPTION_1_CHILD,
             OPTION_2_CHILDREN,
             OPTION_3_4_CHILDREN,
+            OPTION_INFANT,
             new Option("Often without any significant cargo", {
               long_tail: new Score(1, {remarks: [EN_LONG_TAIL_IS_CLOSEST]}),
               two_wheel: 0.5,
@@ -471,7 +514,7 @@
             OPTION_THROUGHOUT_YEAR,
             new Option("No, summer only", {
               long_tail: 1,
-              two_wheel: 1,
+              two_wheel: new Score(1, {remarks: [EN_2_WHEEL_GOOD_OPTION]}),
               three_wheel: 0.75,
               trailer: 1,
               ebike: 0.8
@@ -491,6 +534,13 @@
               three_wheel: new Score(1, {remarks: ["Three wheel is steady, but bad with curbs and narrow turns. Also be aware on inclined roads."]}),
               trailer: 0.7,
               ebike: 1,
+            }),
+            new Option("No difference", {
+              long_tail: 0,
+              two_wheel: 0,
+              three_wheel: 0,
+              trailer: 0,
+              ebike: 0,
             }),
           ]),
         new Question("Price?", false, [
@@ -534,14 +584,14 @@
             new Option("3 - 7km", {
               long_tail: 1,
               two_wheel: 0.9,
-              three_wheel: 0.5,
+              three_wheel: new Score(0.5, {remarks: [EN_3_WHEEL_LACK_OF_AGILITY]}),
               trailer: 0.5,
               ebike: 0.9
             }),
             new Option("More than 7km", {
               long_tail: 1.5,
               two_wheel: 0.8,
-              three_wheel: new Score(0.3, {remarks: ["Driving long distances with a three wheel cargo bike tedious due to its lack of agility."]}),
+              three_wheel: new Score(0.3, {remarks: [EN_3_WHEEL_LACK_OF_AGILITY]}),
               trailer: 0.5,
               ebike: 1.5
             }),
@@ -565,12 +615,22 @@
       ]
 
       const optionCombos = [new OptionCombo({
-        options: [[OPTION_1_CHILD, OPTION_2_CHILDREN, OPTION_3_4_CHILDREN], [OPTION_DAILY, OPTION_THROUGHOUT_YEAR]],
+        options: [[OPTION_1_CHILD, OPTION_2_CHILDREN, OPTION_3_4_CHILDREN, OPTION_INFANT], [OPTION_DAILY, OPTION_THROUGHOUT_YEAR]],
         remarks: ["To keep passengers dry and warm, consider a raincover."],
         scores: {
           long_tail: new Score(0.5, {remarks: ["Long tails have fewer options for weather covers."]}),
           two_wheel: 1,
           three_wheel: 1,
+          trailer: 1,
+          ebike: 1,
+        }
+      }), new OptionCombo({
+        options: [[OPTION_THROUGHOUT_YEAR], [OPTION_DAILY]],
+        remarks: [],
+        scores: {
+          long_tail: 1,
+          two_wheel: 1,
+          three_wheel: new Score(1, {remarks: ["Three wheel is a solid choice for daily ride throughout the year."]}),
           trailer: 1,
           ebike: 1,
         }
