@@ -706,6 +706,10 @@
             var ret = []
 
             this.questions.forEach(question => {
+
+              const questionRemarks = []
+              const questionSelectedOptionRemarks = []
+
               question.getSelectedOptions().forEach(selectedOption => {
                 const remarks = selectedOption.scores[category].remarks.map(r => {
                   return {
@@ -732,14 +736,17 @@
                   }
                 }
 
-                if (!remarks.length && !selectedOptionRemarks.length) return
+                questionRemarks.push(...remarks)
+                questionSelectedOptionRemarks.push(...selectedOptionRemarks)
+              })
 
+              if (questionRemarks.length || questionSelectedOptionRemarks.length) {
                 ret.push({
                   question: question.text,
-                  remarks: remarks,
-                  selectedOptionRemarks: selectedOptionRemarks,
+                  remarks: questionRemarks,
+                  selectedOptionRemarks: questionSelectedOptionRemarks,
                 })
-              })
+              }
             })
 
             return ret
