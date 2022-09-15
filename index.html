@@ -181,6 +181,9 @@
       li.remark {
         color: #777;
       }
+      .remark-text {
+        font-size: 0.9em;
+      }
       .good.remark-text {
         color: #1fcd55;
       }
@@ -192,6 +195,10 @@
       }
       .common-remarks-list .remark {
         color: #1fcd55;
+      }
+      li.remark > span {
+        display: block;
+        margin-bottom: 10px;
       }
 
       .redo {
@@ -267,8 +274,8 @@
           <ul>
             <li v-for="remark in remarksForCategory(result[0], index === 0)" class="remark">
               <span class="remark-question">"{{ $t(remark.question) }}"</span>
-              <span v-for="remarkData in remark.remarks" :class="remarkData.cssClass + ' remark-text'">{{ $t(remarkData.text) }}</span>
               <span v-for="remarkText in remark.selectedOptionRemarks" class="good remark-text">{{ $t(remarkText) }}</span>
+              <span v-for="remarkData in remark.remarks" :class="remarkData.cssClass + ' remark-text'">{{ $t(remarkData.text) }}</span>
             </li>
           </ul>
         </template>
@@ -291,6 +298,7 @@
       const EN_LONG_TAIL_IS_CLOSEST = "Long tail bicycle is closest to a normal bike"
       const EN_3_WHEEL_LACK_OF_AGILITY = "Driving long distances with a three wheel cargo bike tedious due to its lack of agility."
       const EN_2_WHEEL_GOOD_OPTION = "Two wheel is a good option between a three wheel and a long tail bicycle: it's more agile than a three wheel, and steadier than a long tail bicycle."
+      const EN_MAKE_SURE_ENOUGH_SPACE = "Make sure there is enough space for two children."
 
       const messages = {
         "fi": {
@@ -323,12 +331,20 @@
           "Parking?": "Pysäköinti?",
           "I have plenty of space to park the bicycle": "Minulla on paljon tilaa pysäköintiin",
           "Parking space is very limited": "Pysäköintitilaa on rajoitetusti",
-          "Make sure there is enough space for two children.": "Varmista, että pyörässä on tilaa kahdelle lapselle",
+          [EN_MAKE_SURE_ENOUGH_SPACE]: "Varmista, että pyörässä on tilaa kahdelle lapselle",
           "Need to transport an infant in a safety seat": "Tarve kuljettaa vauvaa turvakaukalossa",
           "e-assist": "Sähköavuste",
           [EN_CARRYING_MORE_THAN_2]: "Useamman kuin kahden lapsen kuljettaminen ei tyypillisesti ole mahdollista",
           [EN_LONG_TAIL_IS_CLOSEST]: "Pitkäperäpyörä on ajettavuudeltaan lähimpänä normaalia pyörää.",
           [EN_3_WHEEL_LACK_OF_AGILITY]: "Pidemmän matkan ajaminen 3-pyöräisellä voi olla puuduttavaa sen huonon ketteryyden vuoksi.",
+          [EN_2_WHEEL_GOOD_OPTION]: "2-pyöräinen on hyvä vaihtoehto 3-pyöräisen ja pitkäperäpyörän väliltä: se on ketterämpi kuin 3-pyöräinen, ja vakaampi kuin pitkäperäpyörä",
+          "Make sure accessories such as raincover are available for bicycle model of your choice.": "Varmista, että pyörämalliisi on saatavilla sadekatos.",
+          "Long tails have fewer options for weather covers.": "Pitkäperäpyörille on vähemmän sadekatosvaihtoehtoja",
+          "Attaching a safety seat for an infant is typically not possible.": "Turvakaukalon kiinnittäminen ei tyypillisesti ole mahdollista.",
+          "Consider using winter tyres in the winter.": "Harkitse talvirenkaiden käyttöä talvella.",
+          "Finding a three wheel cargo bike in this price range might prove difficult.": "3-pyöräisen löytäminen tästä hintahaarukasta voi olla haastavaa.",
+          "Three wheel is a solid choice for daily ride throughout the year.": "3-pyöräinen on vakaa vaihtoehto päivittäiseen pyöräilyyn ympäri vuoden.",
+          "Three wheel is steady, but bad with curbs and narrow turns. Also be aware on inclined roads.": "3-pyöräinen on vakaa, mutta huono reunakiveysten kanssa ja tiukoissa kulmissa. Ole myös varovainen kaltevilla teillä.",
           "Driveability?": "Ajettavuus?",
           "Agility before all": "Ketteryys ennen kaikkea",
           "Steadier the better": "Mitä vakaampi sen parempi",
@@ -340,6 +356,10 @@
           "Not necessarily.": "Ei välttämättä.",
           "Not very important.": "Ei kovin tärkeä.",
           "No difference": "Ei väliä",
+          "Questions answered": "Kysymyksiin vastattu",
+
+          // Combos
+          "To keep passengers dry and warm, consider a raincover.": "Pitääksesi kyyditettävät lämpiminä, harkiste pyörään sadekatosta.",
         },
         "en": {
           "Welcome": "Welcome to Cargo bike test! This test helps you to figure out with kind of cargo or family bike would suit you best.",
@@ -436,8 +456,8 @@
       })
 
       OPTION_2_CHILDREN = new Option("2 children", {
-        long_tail: 0.8,
-        two_wheel: new Score(0.9, {remarks: ["Make sure there is enough space for two children."]}),
+        long_tail: new Score(0.6, {remarks: [EN_MAKE_SURE_ENOUGH_SPACE]}),
+        two_wheel: new Score(0.9, {remarks: [EN_MAKE_SURE_ENOUGH_SPACE]}),
         three_wheel: 1,
         trailer: 0.8,
         ebike: 1,
@@ -714,6 +734,7 @@
                 const remarks = selectedOption.scores[category].remarks.map(r => {
                   return {
                     text: r,
+                    score: selectedOption.scores[category].score,
                     cssClass: getRemarkCssClass(selectedOption.scores[category].score)
                   }
                 })
@@ -728,6 +749,7 @@
                   remarks.push(...combo.scores[category].remarks.map(r => {
                     return {
                       text: r,
+                      score: combo.scores[category].score,
                       cssClass: getRemarkCssClass(combo.scores[category].score),
                     }
                   }))
@@ -741,6 +763,7 @@
               })
 
               if (questionRemarks.length || questionSelectedOptionRemarks.length) {
+                questionRemarks.sort((a, b) => b.score - a.score)
                 ret.push({
                   question: question.text,
                   remarks: questionRemarks,
