@@ -299,6 +299,7 @@
       const EN_3_WHEEL_LACK_OF_AGILITY = "Driving long distances with a three wheel cargo bike tedious due to its lack of agility."
       const EN_2_WHEEL_GOOD_OPTION = "Two wheel is a good option between a three wheel and a long tail bicycle: it's more agile than a three wheel, and steadier than a long tail bicycle."
       const EN_MAKE_SURE_ENOUGH_SPACE = "Make sure there is enough space for two children."
+      const EN_2_3_WHEEL_EASIER_HEAVY_CARGO = "It is easier with two and three wheel cargo bikes to carry heavy duty cargo. It is also possible with a long tail bicycle, but fastening the cargo safely can be more difficult."
 
       const messages = {
         "fi": {
@@ -338,6 +339,7 @@
           [EN_LONG_TAIL_IS_CLOSEST]: "Pitkäperäpyörä on ajettavuudeltaan lähimpänä normaalia pyörää.",
           [EN_3_WHEEL_LACK_OF_AGILITY]: "Pidemmän matkan ajaminen 3-pyöräisellä voi olla puuduttavaa sen huonon ketteryyden vuoksi.",
           [EN_2_WHEEL_GOOD_OPTION]: "2-pyöräinen on hyvä vaihtoehto 3-pyöräisen ja pitkäperäpyörän väliltä: se on ketterämpi kuin 3-pyöräinen, ja vakaampi kuin pitkäperäpyörä",
+          [EN_2_3_WHEEL_EASIER_HEAVY_CARGO]: "2- ja 3-pyöräisessä on helpompi kuljettaa isoja tavaroita. Pitkäperäpyörällä isojen tavaroiden kuljettaminen on mahdollista, mutta turvallinen kiinnittäminen on työläämpää.",
           "Make sure accessories such as raincover are available for bicycle model of your choice.": "Varmista, että pyörämalliisi on saatavilla sadekatos.",
           "Long tails have fewer options for weather covers.": "Pitkäperäpyörille on vähemmän sadekatosvaihtoehtoja",
           "Attaching a safety seat for an infant is typically not possible.": "Turvakaukalon kiinnittäminen ei tyypillisesti ole mahdollista.",
@@ -511,7 +513,7 @@
               three_wheel: 1,
               trailer: 0.5,
               ebike: 1,
-            }),
+            }, {remarks: [EN_2_3_WHEEL_EASIER_HEAVY_CARGO]}),
             OPTION_1_CHILD,
             OPTION_2_CHILDREN,
             OPTION_3_4_CHILDREN,
