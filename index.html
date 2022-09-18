@@ -234,8 +234,8 @@
           <form>
             <template v-for="(option, optionIndex) in question.options">
               <div v-if="!question.multiselect">
-                <label :for="option.id" class="option-label">
-                <input :name="question.id" type="radio" :id="option.id" v-model="question.selectedOptions" :value="option" v-on:change="checkResults" />
+                <label :for="option.id + questionIndex.toString()" class="option-label">
+                <input :name="question.id" type="radio" :id="option.id + questionIndex.toString()" v-model="question.selectedOptions" :value="option" v-on:change="checkResults" />
                 {{ $t(option.text) }}
                 </label>
                 <span v-if="question.selectedOptions == option" class="important-option">
@@ -300,6 +300,7 @@
       const EN_2_WHEEL_GOOD_OPTION = "Two wheel is a good option between a three wheel and a long tail bicycle: it's more agile than a three wheel, and steadier than a long tail bicycle."
       const EN_MAKE_SURE_ENOUGH_SPACE = "Make sure there is enough space for two children."
       const EN_2_3_WHEEL_EASIER_HEAVY_CARGO = "It is easier with two and three wheel cargo bikes to carry heavy duty cargo. It is also possible with a long tail bicycle, but fastening the cargo safely can be more difficult."
+      const EN_NO_DIFFERENCE = "No difference"
 
       const messages = {
         "fi": {
@@ -357,7 +358,7 @@
           "Recommended.": "Suositeltava.",
           "Not necessarily.": "Ei välttämättä.",
           "Not very important.": "Ei kovin tärkeä.",
-          "No difference": "Ei väliä",
+          [EN_NO_DIFFERENCE]: "Ei väliä",
           "Questions answered": "Kysymyksiin vastattu",
 
           // Combos
@@ -562,7 +563,7 @@
               trailer: 0.7,
               ebike: 1,
             }),
-            new Option("No difference", {
+            new Option(EN_NO_DIFFERENCE, {
               long_tail: 0,
               two_wheel: 0,
               three_wheel: 0,
@@ -598,6 +599,13 @@
               three_wheel: 1,
               trailer: 1,
               ebike: 1
+            }),
+            new Option(EN_NO_DIFFERENCE, {
+              long_tail: 0,
+              two_wheel: 0,
+              three_wheel: 0,
+              trailer: 0,
+              ebike: 0
             }),
           ]),
         new Question("Usual travel distance?", false, [
