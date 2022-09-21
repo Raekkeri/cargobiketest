@@ -303,6 +303,8 @@
       const EN_NO_DIFFERENCE = "No difference"
       const EN_3_WHEEL_HIGH_SPEED = "Three wheel might become more unstable at higher speed, making it (on avarage) slower than a two wheel cargo bike or a long tail bike."
 
+      const BAD_REMARK = 0.3
+
       const messages = {
         "fi": {
           "Welcome": "Tervetuloa Rahtipyörätestiin! Testin avulla voit kartoittaa, minkä tyyppinen rahti- tai perhepyörä sinulle sopisi parhaiten. Valitse kysymyksiin omiin tarpeisiisi osuvin vastaus. Tulokset löydät sivun lopusta.",
@@ -423,7 +425,7 @@
           })
 
           if (args !== undefined)
-            this.remarks = ("remarks" in args) ? args !== undefined && args.remarks : null
+            this.remarks = ("remarks" in args) ? Remark.build(args.remarks) : []
           else this.remarks = []
         }
       }
@@ -432,15 +434,33 @@
         constructor(score, args) {
           this.score = score
           if (args !== undefined)
-            this.remarks = ("remarks" in args) ? args !== undefined && args.remarks : null
+            this.remarks = ("remarks" in args) ? Remark.build(args.remarks, this.score) : []
           else this.remarks = []
+        }
+      }
+
+      class Remark {
+        constructor(text, score) {
+          this.text = text
+          this.score = score != undefined ? score : null
+        }
+
+        static build(remarks, defaultScore) {
+          var ret = []
+          for (var r of remarks) {
+            if (!(r instanceof Remark)) {
+              r = new Remark(r, defaultScore)
+            }
+            ret.push(r)
+          }
+          return ret
         }
       }
 
       class OptionCombo {
         constructor(args) {
           this.options = args.options
-          this.remarks = args.remarks
+          this.remarks = Remark.build(args.remarks)
           this.scores = {}
           Object.keys(args.scores).forEach(key => {
             if (!(args.scores[key] instanceof Score)) {
@@ -563,7 +583,7 @@
               two_wheel: 0.7,
               three_wheel: new Score(1, {remarks: [
                 "Three wheel is steady, but bad with curbs and narrow turns. Also be aware on inclined roads.",
-                EN_3_WHEEL_HIGH_SPEED,
+                new Remark(EN_3_WHEEL_HIGH_SPEED, BAD_REMARK),
               ]}),
               trailer: 0.7,
               ebike: 1,
@@ -748,28 +768,28 @@
               question.getSelectedOptions().forEach(selectedOption => {
                 const remarks = selectedOption.scores[category].remarks.map(r => {
                   return {
-                    text: r,
+                    text: r.text,
                     score: selectedOption.scores[category].score,
-                    cssClass: getRemarkCssClass(selectedOption.scores[category].score)
+                    cssClass: getRemarkCssClass(r.score)
                   }
                 })
                 const selectedOptionRemarks = []
                 const combos = (selectedOption.id in this.results.combos) ? this.results.combos[selectedOption.id] : []
 
                 if (includeOptionsRemarks) {
-                  selectedOptionRemarks.push(...selectedOption.remarks)
+                  selectedOptionRemarks.push(...selectedOption.remarks.map(r => r.text))
                 }
 
                 for (const combo of combos) {
                   remarks.push(...combo.scores[category].remarks.map(r => {
                     return {
-                      text: r,
+                      text: r.text,
                       score: combo.scores[category].score,
-                      cssClass: getRemarkCssClass(combo.scores[category].score),
+                      cssClass: getRemarkCssClass(r.score),
                     }
                   }))
                   if (includeOptionsRemarks) {
-                    selectedOptionRemarks.push(...combo.remarks)
+                    selectedOptionRemarks.push(...combo.remarks.map(r => r.text))
                   }
                 }
 
