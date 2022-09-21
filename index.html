@@ -301,6 +301,7 @@
       const EN_MAKE_SURE_ENOUGH_SPACE = "Make sure there is enough space for two children."
       const EN_2_3_WHEEL_EASIER_HEAVY_CARGO = "It is easier with two and three wheel cargo bikes to carry heavy duty cargo. It is also possible with a long tail bicycle, but fastening the cargo safely can be more difficult."
       const EN_NO_DIFFERENCE = "No difference"
+      const EN_3_WHEEL_HIGH_SPEED = "Three wheel might become more unstable at higher speed, making it (on avarage) slower than a two wheel cargo bike or a long tail bike."
 
       const messages = {
         "fi": {
@@ -341,6 +342,7 @@
           [EN_3_WHEEL_LACK_OF_AGILITY]: "Pidemmän matkan ajaminen 3-pyöräisellä voi olla puuduttavaa sen huonon ketteryyden vuoksi.",
           [EN_2_WHEEL_GOOD_OPTION]: "2-pyöräinen on hyvä vaihtoehto 3-pyöräisen ja pitkäperäpyörän väliltä: se on ketterämpi kuin 3-pyöräinen, ja vakaampi kuin pitkäperäpyörä",
           [EN_2_3_WHEEL_EASIER_HEAVY_CARGO]: "2- ja 3-pyöräisessä on helpompi kuljettaa isoja tavaroita. Pitkäperäpyörällä isojen tavaroiden kuljettaminen on mahdollista, mutta turvallinen kiinnittäminen on työläämpää.",
+          [EN_3_WHEEL_HIGH_SPEED]: "3-pyöräinen voi olla epävakaa isoissa nopeuksissa, tehden siitä keskimäärin hitaamman ajettavan kuin 2-pyöräinen rahtipyörä tai pitkäperäpyörä.",
           "Make sure accessories such as raincover are available for bicycle model of your choice.": "Varmista, että pyörämalliisi on saatavilla sadekatos.",
           "Long tails have fewer options for weather covers.": "Pitkäperäpyörille on vähemmän sadekatosvaihtoehtoja",
           "Attaching a safety seat for an infant is typically not possible.": "Turvakaukalon kiinnittäminen ei tyypillisesti ole mahdollista.",
@@ -552,14 +554,17 @@
             new Option("Agility before all", {
               long_tail: new Score(1, {remarks: [EN_LONG_TAIL_IS_CLOSEST]}),
               two_wheel: 0.7,
-              three_wheel: 0.3,
+              three_wheel: new Score(0.3, {remarks: [EN_3_WHEEL_HIGH_SPEED]}),
               trailer: 0.7,
               ebike: 1,
             }),
             new Option("Steadier the better", {
               long_tail: 0.3,
               two_wheel: 0.7,
-              three_wheel: new Score(1, {remarks: ["Three wheel is steady, but bad with curbs and narrow turns. Also be aware on inclined roads."]}),
+              three_wheel: new Score(1, {remarks: [
+                "Three wheel is steady, but bad with curbs and narrow turns. Also be aware on inclined roads.",
+                EN_3_WHEEL_HIGH_SPEED,
+              ]}),
               trailer: 0.7,
               ebike: 1,
             }),
